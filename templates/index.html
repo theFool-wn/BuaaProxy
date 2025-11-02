@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUAA Campus Network Proxy Service</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='mainGrad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%234361ee'/><stop offset='100%' stop-color='%233a0ca3'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23mainGrad)'/><circle cx='30' cy='30' r='8' fill='white'/><circle cx='70' cy='30' r='8' fill='white'/><circle cx='50' cy='70' r='8' fill='white'/><path d='M30,30 L50,50 L70,30 M30,30 L50,70 M70,30 L50,70' stroke='white' stroke-width='4' stroke-linecap='round' fill='none'/></svg>">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+            --success-color: #4bb543;
+            --warning-color: #ffc107;
+            --danger-color: #e63946;
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-radius: 12px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #718096;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: var(--transition);
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--success-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .status-content h3 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .status-content p {
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .api-section {
+            margin-bottom: 40px;
+        }
+
+        .api-section h2 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .api-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .method {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .method.get {
+            background: #e6f4ea;
+            color: #0d652d;
+        }
+
+        .method.post {
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .api-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .api-description {
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .params-table th {
+            background: #f7fafc;
+            text-align: left;
+            padding: 10px 15px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .params-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .required {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        .optional {
+            color: #718096;
+        }
+
+        .example {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .contact-section {
+            margin-bottom: 40px;
+        }
+
+        .contact-section h2 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .contact-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            color: var(--text-color);
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: 1px solid #e2e8f0;
+        }
+
+        .contact-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffd43b;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .warning:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .warning h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .warning li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .warning li::before {
+            content: "✗";
+            position: absolute;
+            left: -15px;
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .status-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .params-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .contact-links {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 BUAA Campus Network Proxy Service</h1>
+            <p>A secure proxy service for accessing BUAA campus network resources</p>
+        </div>
+
+        <div class="status-card">
+            <div class="status-icon">✓</div>
+            <div class="status-content">
+                <h3>Service Status: Running</h3>
+                <p><strong>Start Time:</strong> {{ start_time }}</p>
+                <p><strong>Current Time:</strong> {{ current_time }}</p>
+                <p><strong>Uptime:</strong> {{ uptime }}</p>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>📡 Available API Endpoints</h2>
+
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="api-title">/health</span>
+                </div>
+                <div class="api-description">
+                    Health check endpoint to verify service status.
+                </div>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No parameters required</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="example">
+                    Example: /health
+                </div>
+            </div>
+
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="api-title">/api/iClassSchedule</span>
+                </div>
+                <div class="api-description">
+                    Query course schedule for a specific student and date.
+                </div>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>studentId</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Student ID number</td>
+                        </tr>
+                        <tr>
+                            <td>studentName</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Student's full name</td>
+                        </tr>
+                        <tr>
+                            <td>dateStr</td>
+                            <td>String</td>
+                            <td><span class="optional">Optional</span></td>
+                            <td>Date in "YYYYMMDD" format (defaults to today)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="example">
+                    Example: /api/iClassSchedule?studentId=1234&studentName=John&dateStr=20251102
+                </div>
+            </div>
+
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="api-title">/api/iClassSign</span>
+                </div>
+                <div class="api-description">
+                    Sign in for a specific course. Only accepts JSON data.
+                </div>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>studentId</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Student ID number</td>
+                        </tr>
+                        <tr>
+                            <td>user_id</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>User ID from login session</td>
+                        </tr>
+                        <tr>
+                            <td>course_id</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Course ID to sign in for</td>
+                        </tr>
+                        <tr>
+                            <td>classBeginTime</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Course begin time in "YYYY-MM-DD HH:MM:SS" format</td>
+                        </tr>
+                        <tr>
+                            <td>classEndTime</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Course end time in "YYYY-MM-DD HH:MM:SS" format</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="example">
+                    Request Body: {<br>
+                    &nbsp;&nbsp;"studentId": "123456",<br>
+                    &nbsp;&nbsp;"user_id": "user123",<br>
+                    &nbsp;&nbsp;"course_id": "course456"<br>
+                    &nbsp;&nbsp;"classBeginTime": "2025-11-01 08:00:00",<br>
+                    &nbsp;&nbsp;"classEndTime": "2025-11-01 12:15:00"<br>
+                    }
+                </div>
+            </div>
+
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="api-title">/api/proxy</span>
+                </div>
+                <div class="api-description">
+                    General-purpose proxy for campus network requests. Requires API key authentication. Only accepts JSON data.
+                </div>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>API_KEY</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Your API key for authentication</td>
+                        </tr>
+                        <tr>
+                            <td>target_url</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>URL to proxy the request to</td>
+                        </tr>
+                        <tr>
+                            <td>target_method</td>
+                            <td>String</td>
+                            <td><span class="optional">Optional</span></td>
+                            <td>HTTP method (default: GET)</td>
+                        </tr>
+                        <tr>
+                            <td>target_headers</td>
+                            <td>Object</td>
+                            <td><span class="optional">Optional</span></td>
+                            <td>HTTP headers to include</td>
+                        </tr>
+                        <tr>
+                            <td>target_params</td>
+                            <td>Object</td>
+                            <td><span class="optional">Optional</span></td>
+                            <td>URL parameters</td>
+                        </tr>
+                        <tr>
+                            <td>target_data</td>
+                            <td>Object</td>
+                            <td><span class="optional">Optional</span></td>
+                            <td>Request body data</td>
+                        </tr>
+                        <tr>
+                            <td>target_json_data</td>
+                            <td>Object</td>
+                            <td><span class="optional">Optional</span></td>
+                            <td>JSON data for request body</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="example">
+                    Request Body: {<br>
+                    &nbsp;&nbsp;"API_KEY": "your_api_key_here",<br>
+                    &nbsp;&nbsp;"target_url": "https://example.com/api/data",<br>
+                    &nbsp;&nbsp;"target_method": "POST",<br>
+                    &nbsp;&nbsp;"target_headers": {"Content-Type": "application/json"},<br>
+                    &nbsp;&nbsp;"target_json_data": {"key": "value"}<br>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-section">
+            <h2>Contact</h2>
+            <div class="contact-links">
+                <a href="https://github.com/theFool-wn" class="contact-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+                <a href="mailto:me@wangnan.net" class="contact-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12.713l-11.985-9.713h23.97l-11.985 9.713zm0 2.574l-12-9.725v15.438h24v-15.438l-12 9.725z"/>
+                    </svg>
+                    Email
+                </a>
+                <a href="https://wangnan.net" class="contact-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.947v1.053h-2v-1.053c-3.332-.486-6-3.374-6-6.947h2c0 2.761 2.239 5 5 5s5-2.239 5-5h2c0 3.573-2.668 6.461-6 6.947z"/>
+                    </svg>
+                    Personal Website
+                </a>
+            </div>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Terms of Use and Prohibitions</h3>
+            <p><strong>This service is for private use only. The following actions are strictly prohibited:</strong></p>
+            <ul>
+                <li>Commercial use or resale services</li>
+                <li>Automated web crawlers or large-scale data harvesting</li>
+                <li>Sending spam requests or abusing the service</li>
+                <li>Used for illegal or malicious activities</li>
+                <li>Unauthorized bulk requests</li>
+            </ul>
+            <p>I reserve the right to block any suspicious or abusive activity at any time without incurring any liability for such actions.</p>
+        </div>
+
+        <div class="footer">
+            <p>You are responsible for all consequences arising from the use of this service.</p>
+            <p>&copy; 2025 Wang Nan. All rights reserved.</p>
+            <p>Last updated: November 2025</p>
+        </div>
+    </div>
+</body>
+</html>
