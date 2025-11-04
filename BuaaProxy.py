@@ -3,6 +3,7 @@
 # @       Creation Date: 2025/11/1 23:15
 # @         Description: BUAA campus network self-built proxy, used to access on-campus services
 # @ Version Information: Created by WangNan, 2025/11/1
+#                        Revised by WangNan, 2025/11/4, add robots.txt
 # ===================================================================================
 
 
@@ -14,7 +15,7 @@ import logging
 import urllib3
 
 from datetime import datetime, timedelta
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 
 
 logging.basicConfig(
@@ -97,6 +98,11 @@ def home():
         current_time=current_time,
         uptime=get_uptime()
     )
+
+
+@app.route('/robots.txt')
+def robots():
+    return send_from_directory(app.static_folder, 'robots.txt')
 
 
 @app.route('/health', methods=['GET'])
@@ -342,5 +348,6 @@ if __name__ == '__main__':
 
     logger.info("BUAA 代理服务启动")
     logger.info(f"服务运行在: http://0.0.0.0:5000")
+
 
     app.run(host='0.0.0.0', port=5000, debug=False)
