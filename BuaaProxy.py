@@ -3,7 +3,8 @@
 # @       Creation Date: 2025/11/1 23:15
 # @         Description: BUAA campus network self-built proxy, used to access on-campus services
 # @ Version Information: Created by WangNan, 2025/11/1
-#                        Revised by WangNan, 2025/11/4, add robots.txt
+#                        Revised by WangNan, 2025/11/4, add robots()
+#                        Revised by WangNan, 2025/11/4, add get_client_ip() and favicon()
 # ===================================================================================
 
 
@@ -73,6 +74,33 @@ def verify_api_key(provided_key):
         return False, "无效的 API 密钥"
 
 
+def get_client_ip():
+    """
+    按优先级从头部获取客户端真实IP
+    如果所有头部都不存在，则返回本机地址
+    """
+    ip_headers = [
+        'CF-Connecting-IP',
+        'True-Client-IP',
+        'X-Client-IP',
+        'X-Real-IP',
+        'X-Forwarded-For',
+        'X-Cluster-Client-IP',
+        'Forwarded-For',
+        'Forwarded',
+    ]
+
+    for header in ip_headers:
+        ip_value = request.headers.get(header)
+        if ip_value:
+            ips = [ip.strip() for ip in ip_value.split(',')]
+            for ip in ips:
+                if ip and ip.lower() != 'unknown':
+                    return ip
+
+    return request.remote_addr
+
+
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -90,7 +118,7 @@ def home():
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     start_time_str = start_time.strftime('%Y-%m-%d %H:%M:%S')
 
-    logger.info(f"首页访问 - 客户端IP: {request.remote_addr}")
+    logger.info(f"首页访问 - 客户端IP: {get_client_ip()}")
 
     return render_template(
         'index.html',
@@ -100,15 +128,22 @@ def home():
     )
 
 
+@app.route('/favicon.ico')
+def favicon():
+    logger.info(f"favicon.ico访问 - 客户端IP: {get_client_ip()}")
+    return '', 204
+
+
 @app.route('/robots.txt')
 def robots():
+    logger.info(f"robots.txt访问 - 客户端IP: {get_client_ip()}")
     return send_from_directory(app.static_folder, 'robots.txt')
 
 
 @app.route('/health', methods=['GET'])
 def health():
     """健康检查接口"""
-    logger.info("健康检查请求")
+    logger.info(f"健康检查请求 - 客户端IP: {get_client_ip()}")
 
     return jsonify({
         "status": "healthy",
@@ -124,7 +159,7 @@ def login():
     """用户登录接口"""
     student_id = request.args.get('studentId')
     student_name = request.args.get('studentName')
-    client_ip = request.remote_addr
+    client_ip = get_client_ip()
 
     if request.args.get('dateStr'):
         date_str = request.args.get('dateStr')
@@ -206,7 +241,7 @@ def sign_in():
     course_id = data.get('id')
     classBeginTime = data.get('classBeginTime')
     classEndTime = data.get('classEndTime')
-    client_ip = request.remote_addr
+    client_ip = get_client_ip()
 
     if not user_id or not course_id or not student_id or not classBeginTime or not classEndTime:
         logger.warning("签到请求缺少参数")
@@ -241,7 +276,7 @@ def sign_in():
         sign_result = sign_response.json()
 
         status = sign_result.get('STATUS')
-        logger.info(f"签到结果 - 学号: {student_id}, 课程ID: {course_id}, 状态: {status}")
+        logger.info(f"签到成功 - 学号: {student_id}, 课程ID: {course_id}, 状态: {status}")
 
         return jsonify(sign_result)
 
@@ -253,7 +288,7 @@ def sign_in():
 @app.route('/proxy', methods=['POST'])
 def proxy():
     """通用代理接口"""
-    client_ip = request.remote_addr
+    client_ip = get_client_ip()
 
     request_data = request.get_json()
     if not request_data:
@@ -333,7 +368,7 @@ def proxy():
 @app.errorhandler(404)
 def not_found(error):
     """404 错误处理"""
-    logger.warning(f"访问不存在的页面 - 路径: {request.path}, 客户端IP: {request.remote_addr}")
+    logger.warning(f"访问不存在的页面 - 路径: {request.path}, 客户端IP: {get_client_ip()}")
     return render_template('404.html', request_path=request.path), 404
 
 
@@ -348,6 +383,5 @@ if __name__ == '__main__':
 
     logger.info("BUAA 代理服务启动")
     logger.info(f"服务运行在: http://0.0.0.0:5000")
-
 
     app.run(host='0.0.0.0', port=5000, debug=False)
