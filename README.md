@@ -26,4 +26,4 @@ You are free to use, share, and adapt the code for **non-commercial purposes**, 
 * You must give **appropriate credit**, provide **a link to this License**, and indicate if modifications were made. You may give credit in any reasonable way, but you must not do so in any way that suggests that the licensor endorses you or your use.
 * You **distribute any modifications under the same license**.
 
-© 2025 Wang Nan. All rights reserved.
+© 2025-2026 Wang Nan. All rights reserved.
