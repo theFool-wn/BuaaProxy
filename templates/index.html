@@ -383,27 +383,21 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>studentId</td>
+                            <td>username</td>
                             <td>String</td>
                             <td><span class="required">Required</span></td>
                             <td>Student ID number</td>
                         </tr>
                         <tr>
-                            <td>studentName</td>
+                            <td>password</td>
                             <td>String</td>
                             <td><span class="required">Required</span></td>
-                            <td>Student's full name</td>
-                        </tr>
-                        <tr>
-                            <td>dateStr</td>
-                            <td>String</td>
-                            <td><span class="optional">Optional</span></td>
-                            <td>Date in "YYYYMMDD" format (defaults to today)</td>
+                            <td>password to login</td>
                         </tr>
                     </tbody>
                 </table>
                 <div class="example">
-                    Example: /api/iClassSchedule?studentId=1234&studentName=John&dateStr=20251102
+                    Example: /api/iClassSchedule?username=1234&password=abcd
                 </div>
             </div>
 
@@ -426,7 +420,13 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>studentId</td>
+                            <td>session_id</td>
+                            <td>String</td>
+                            <td><span class="required">Required</span></td>
+                            <td>Session ID number</td>
+                        </tr>
+                        <tr>
+                            <td>username</td>
                             <td>String</td>
                             <td><span class="required">Required</span></td>
                             <td>Student ID number</td>
@@ -459,7 +459,8 @@
                 </table>
                 <div class="example">
                     Request Body: {<br>
-                    &nbsp;&nbsp;"studentId": "123456",<br>
+                    &nbsp;&nbsp;"session_id": "ABCDEFG",<br>
+                    &nbsp;&nbsp;"username": "123456",<br>
                     &nbsp;&nbsp;"user_id": "user123",<br>
                     &nbsp;&nbsp;"course_id": "course456"<br>
                     &nbsp;&nbsp;"classBeginTime": "2025-11-01 08:00:00",<br>
@@ -586,5 +587,4 @@
         </div>
     </div>
 </body>
-
 </html>
