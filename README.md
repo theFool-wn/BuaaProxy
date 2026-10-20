@@ -1,3 +1,6 @@
+> [!NOTE]
+> **This repository is archived.** Its functionality has been integrated into [`BuaaSignIn`](https://github.com/theFool-wn/BuaaSignIn).
+
 # BuaaProxy
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  ![Made by Wang Nan](https://img.shields.io/badge/Made%20by-Wang%20Nan-brightgreen)
